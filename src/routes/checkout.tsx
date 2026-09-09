@@ -17,6 +17,11 @@ import {
   Truck,
   MapPin,
   Ban,
+  User,
+  UserCheck,
+  Sparkles,
+  ShoppingBag,
+  ArrowRight,
 } from "lucide-react";
 import { cartSubtotal, useCart } from "@/lib/cart";
 import { inr } from "@/lib/products";
@@ -79,10 +84,29 @@ type Shipping = z.infer<typeof shippingSchema>;
 function Checkout() {
   const { lines, clear } = useCart();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, isLoading } = useAuth();
   const subtotal = cartSubtotal(lines);
   const [step, setStep] = useState<Step>(1);
   const [placed, setPlaced] = useState(false);
+  const [guestSelected, setGuestSelected] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("checkout_guest_mode") === "true";
+    }
+    return false;
+  });
+
+  const showAuthModal = !isLoading && !user && !guestSelected && lines.length > 0 && !placed;
+
+  const handleContinueAsGuest = () => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("checkout_guest_mode", "true");
+    }
+    setGuestSelected(true);
+  };
+
+  const handleSignInRedirect = () => {
+    navigate({ to: "/login", search: { redirect: "/checkout" } });
+  };
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const [placedOrderUtr, setPlacedOrderUtr] = useState<string>("");
   const [placedOrderWaUrl, setPlacedOrderWaUrl] = useState<string>("");
@@ -492,6 +516,29 @@ function Checkout() {
           </div>
         )}
 
+        {!user && contact.email && (
+          <div className="mt-6 p-4 bg-card border border-border rounded-xl text-left text-xs space-y-2 max-w-md mx-auto shadow-sm">
+            <div className="flex items-start gap-2.5">
+              <Sparkles className="w-4 h-4 text-peacock shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-foreground">Save your order & track easily</p>
+                <p className="text-muted-foreground mt-0.5 leading-relaxed">
+                  Create an account using{" "}
+                  <span className="font-medium text-foreground">{contact.email}</span> to manage
+                  this order and earn festive reward points.
+                </p>
+                <Link
+                  to="/login"
+                  search={{ redirect: "/account" }}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-peacock hover:underline mt-2"
+                >
+                  Create Account <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           {user && (
             <Link
@@ -530,598 +577,702 @@ function Checkout() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1200px] px-6 py-12 lg:py-20 grid lg:grid-cols-3 gap-12">
-      <div className="lg:col-span-2">
-        <header className="mb-10">
-          <p className="eyebrow">Checkout</p>
-          <h1 className="mt-3 font-display text-4xl lg:text-5xl">Almost there</h1>
-        </header>
-
-        <nav className="flex items-center gap-2 mb-10 text-sm">
-          {steps.map((s, i) => (
-            <div key={s.n} className="flex items-center gap-2">
-              <span
-                className={`h-7 w-7 rounded-full flex items-center justify-center text-xs ${
-                  step >= s.n ? "bg-peacock text-ivory" : "bg-parchment text-muted-foreground"
-                }`}
-              >
-                {step > s.n ? <Check className="h-3.5 w-3.5" /> : s.n}
-              </span>
-              <span className={step === s.n ? "text-foreground" : "text-muted-foreground"}>
-                {s.label}
-              </span>
-              {i < steps.length - 1 && <span className="w-8 h-px bg-border mx-2" />}
-            </div>
-          ))}
-        </nav>
-
-        {step === 1 && (
-          <section className="space-y-4">
-            <Field
-              label="Email"
-              type="email"
-              placeholder="you@email.com"
-              value={contact.email}
-              onChange={(e) => setContact({ ...contact, email: e.currentTarget.value })}
-              error={contactErr.email}
-            />
-            <Field
-              label="Phone"
-              type="tel"
-              placeholder="+91 98765 43210"
-              value={contact.phone}
-              onChange={(e) => setContact({ ...contact, phone: e.currentTarget.value })}
-              error={contactErr.phone}
-            />
+    <>
+      {/* Guest vs Sign In Choice Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
             <button
-              onClick={submitContact}
-              className="mt-6 bg-foreground text-ivory px-7 py-3 rounded-full text-sm"
+              onClick={handleContinueAsGuest}
+              className="absolute top-4 right-4 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+              aria-label="Close"
             >
-              Continue to shipping
+              <X className="w-4 h-4" />
             </button>
-          </section>
-        )}
 
-        {step === 2 && (
-          <section className="space-y-4">
-            <Field
-              label="Full name"
-              placeholder="Priya Sharma"
-              value={shipping.name}
-              onChange={(e) => setShipping({ ...shipping, name: e.currentTarget.value })}
-              error={shipErr.name}
-            />
-            <Field
-              label="Address line 1"
-              placeholder="House / Flat / Street"
-              value={shipping.address1}
-              onChange={(e) => setShipping({ ...shipping, address1: e.currentTarget.value })}
-              error={shipErr.address1}
-            />
-            <Field
-              label="Address line 2"
-              placeholder="Area / Landmark (optional)"
-              value={shipping.address2}
-              onChange={(e) => setShipping({ ...shipping, address2: e.currentTarget.value })}
-            />
-            <div className="grid grid-cols-3 gap-4">
-              <Field
-                label="City"
-                placeholder="Mumbai"
-                value={shipping.city}
-                onChange={(e) => setShipping({ ...shipping, city: e.currentTarget.value })}
-                error={shipErr.city}
-              />
-              <Field
-                label="State"
-                placeholder="Maharashtra"
-                value={shipping.state}
-                onChange={(e) => setShipping({ ...shipping, state: e.currentTarget.value })}
-                error={shipErr.state}
-              />
-              <Field
-                label="Pincode"
-                placeholder="400001"
-                value={shipping.pincode}
-                onChange={(e) => setShipping({ ...shipping, pincode: e.currentTarget.value })}
-                error={shipErr.pincode}
-              />
+            <div className="text-center space-y-1.5">
+              <span className="eyebrow text-xs tracking-widest text-primary uppercase">
+                Ambika Traders Checkout
+              </span>
+              <h2 className="font-serif text-2xl sm:text-3xl text-foreground">
+                How would you like to proceed?
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Sign in to your account for rewards & order tracking, or proceed swiftly as a guest.
+              </p>
             </div>
 
-            {/* Pincode Delivery Checker */}
-            {shipping.pincode.length === 6 && (
-              <div className="mt-4 p-4 rounded-lg border border-border bg-parchment/30">
-                {pincodeLoading ? (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>Checking delivery availability...</span>
-                  </div>
-                ) : shippingResult ? (
-                  <div className="space-y-2">
-                    {shippingResult.isServiceable ? (
-                      <>
-                        <div className="flex items-center gap-2 text-xs">
-                          <Truck className="h-4 w-4 text-peacock" />
-                          <span className="font-medium text-foreground">
-                            Delivery available to {shipping.pincode}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-3 text-xs">
-                          <div className="bg-white p-2.5 rounded border border-border">
-                            <span className="text-[10px] text-muted-foreground block mb-0.5">
-                              Shipping Fee
-                            </span>
-                            <span className="font-semibold text-foreground">
-                              {shippingResult.freeShipping ? (
-                                <span className="text-emerald-600">FREE</span>
-                              ) : (
-                                inr(shippingResult.fee)
-                              )}
-                            </span>
-                            {!shippingResult.freeShipping &&
-                              shippingResult.remainingForFreeShipping > 0 && (
-                                <span className="text-[10px] text-muted-foreground block mt-0.5">
-                                  Free above {inr(shippingResult.freeShippingMin)}
-                                </span>
-                              )}
-                          </div>
-                          <div className="bg-white p-2.5 rounded border border-border">
-                            <span className="text-[10px] text-muted-foreground block mb-0.5">
-                              Estimated Delivery
-                            </span>
-                            <span className="font-semibold text-foreground">
-                              {shippingResult.estimatedDays.min}–{shippingResult.estimatedDays.max}{" "}
-                              days
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded border border-border">
-                            <span className="text-[10px] text-muted-foreground block mb-0.5">
-                              Cash on Delivery
-                            </span>
-                            <span className="font-semibold text-foreground">
-                              {shippingResult.codAvailable ? (
-                                <span className="text-emerald-600">Available</span>
-                              ) : (
-                                <span className="text-rose">Not available</span>
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                        {!shippingResult.freeShipping &&
-                          shippingResult.remainingForFreeShipping > 0 && (
-                            <p className="text-[11px] text-muted-foreground">
-                              Add {inr(shippingResult.remainingForFreeShipping)} more for free
-                              shipping
-                            </p>
-                          )}
-                      </>
-                    ) : (
-                      <div className="flex items-center gap-2 text-xs">
-                        <Ban className="h-4 w-4 text-rose" />
-                        <span className="font-medium text-rose">
-                          Sorry, we don't deliver to this pincode yet
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                ) : pincodeChecked ? (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" />
-                    <span>Enter a valid 6-digit pincode to check delivery</span>
-                  </div>
-                ) : null}
-              </div>
-            )}
-
-            <div className="flex gap-3 mt-6">
+            <div className="space-y-3 pt-1">
+              {/* Option A: Sign In / Register */}
               <button
-                onClick={() => setStep(1)}
-                className="px-6 py-3 rounded-full text-sm border border-border"
+                type="button"
+                onClick={handleSignInRedirect}
+                className="w-full text-left p-4 rounded-xl border-2 border-peacock bg-peacock/5 hover:bg-peacock/10 transition-all flex items-start gap-3.5 group cursor-pointer"
               >
-                Back
-              </button>
-              <button
-                onClick={submitShipping}
-                className="bg-foreground text-ivory px-7 py-3 rounded-full text-sm"
-              >
-                Continue to payment
-              </button>
-            </div>
-          </section>
-        )}
-
-        {step === 3 && (
-          <section className="space-y-6">
-            {/* Payment Method Selector */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label
-                className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-all ${
-                  pay === "upi"
-                    ? "border-peacock bg-peacock/5 shadow-sm ring-1 ring-peacock"
-                    : "border-border hover:bg-parchment/40"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="pay"
-                  checked={pay === "upi"}
-                  onChange={() => {
-                    setPay("upi");
-                    setUtrErr("");
-                  }}
-                  className="accent-peacock mt-1"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">Direct UPI / QR Code</span>
-                    <span className="text-[10px] uppercase tracking-wider font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
+                <div className="p-2.5 rounded-full bg-peacock/10 text-peacock shrink-0 group-hover:scale-105 transition-transform">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-foreground">
+                      Sign In or Register
+                    </span>
+                    <span className="text-[10px] uppercase font-bold tracking-wider bg-peacock text-ivory px-2 py-0.5 rounded-full">
                       Recommended
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    GPay, PhonePe, Paytm, BHIM • Instant & 0% Fee
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    Track delivery live, save addresses, and earn referral reward credits.
                   </p>
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-peacock mt-2">
+                    Sign In / Register <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
                 </div>
-              </label>
+              </button>
 
-              <label
-                className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-all ${
-                  pay === "cod"
-                    ? "border-peacock bg-peacock/5 shadow-sm ring-1 ring-peacock"
-                    : "border-border hover:bg-parchment/40"
-                }`}
+              {/* Option B: Continue as Guest */}
+              <button
+                type="button"
+                onClick={handleContinueAsGuest}
+                className="w-full text-left p-4 rounded-xl border border-border bg-card hover:border-foreground/30 hover:bg-muted/40 transition-all flex items-start gap-3.5 group cursor-pointer"
               >
-                <input
-                  type="radio"
-                  name="pay"
-                  checked={pay === "cod"}
-                  onChange={() => {
-                    setPay("cod");
-                    setUtrErr("");
-                  }}
-                  className="accent-peacock mt-1"
-                />
-                <div className="flex-1">
-                  <span className="font-semibold text-sm">Cash on Delivery</span>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Pay cash upon delivery • +₹49 handling
-                  </p>
+                <div className="p-2.5 rounded-full bg-muted text-foreground shrink-0 group-hover:scale-105 transition-transform">
+                  <ShoppingBag className="w-5 h-5" />
                 </div>
-              </label>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-foreground">Continue as Guest</span>
+                    <span className="text-[10px] text-muted-foreground">Fastest</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    Check out in 1 minute with just your phone & delivery address. No password
+                    needed.
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground group-hover:text-foreground mt-2">
+                    Proceed to Guest Checkout <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+              </button>
             </div>
 
-            {/* DIRECT UPI PAYMENT PANEL */}
-            {pay === "upi" && (
-              <div className="p-6 rounded-xl border border-amber-200 bg-gradient-to-b from-amber-50/50 to-ivory shadow-sm space-y-6">
-                {/* Beneficiary & Amount Banner */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border/80">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-peacock block">
-                      Admin Payment Details
-                    </span>
-                    <h4 className="font-display text-base font-semibold text-foreground">
-                      {PAYMENT_CONFIG.upiName}
-                    </h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <code className="text-xs font-mono bg-white px-2.5 py-1 rounded border border-border text-foreground font-semibold">
-                        {PAYMENT_CONFIG.upiId}
-                      </code>
-                      <button
-                        type="button"
-                        onClick={copyUpi}
-                        className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 bg-white hover:bg-neutral-100 rounded border border-border transition-colors text-neutral-700"
-                      >
-                        {copiedUpi ? (
-                          <>
-                            <Check className="w-3 h-3 text-emerald-600" />
-                            <span className="text-emerald-700 font-semibold">Copied!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            <span>Copy ID</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
+            <p className="text-[11px] text-center text-muted-foreground pt-0.5">
+              You can always link your order to an account after checkout.
+            </p>
+          </div>
+        </div>
+      )}
 
-                  <div className="sm:text-right">
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
-                      Amount Payable
-                    </span>
-                    <span className="font-display text-2xl font-bold text-peacock">
-                      {inr(totalPayable)}
+      <div className="mx-auto max-w-[1200px] px-6 py-12 lg:py-20 grid lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2">
+          <header className="mb-10">
+            <p className="eyebrow">Checkout</p>
+            <h1 className="mt-3 font-display text-4xl lg:text-5xl">Almost there</h1>
+          </header>
+
+          <nav className="flex items-center gap-2 mb-10 text-sm">
+            {steps.map((s, i) => (
+              <div key={s.n} className="flex items-center gap-2">
+                <span
+                  className={`h-7 w-7 rounded-full flex items-center justify-center text-xs ${
+                    step >= s.n ? "bg-peacock text-ivory" : "bg-parchment text-muted-foreground"
+                  }`}
+                >
+                  {step > s.n ? <Check className="h-3.5 w-3.5" /> : s.n}
+                </span>
+                <span className={step === s.n ? "text-foreground" : "text-muted-foreground"}>
+                  {s.label}
+                </span>
+                {i < steps.length - 1 && <span className="w-8 h-px bg-border mx-2" />}
+              </div>
+            ))}
+          </nav>
+
+          {step === 1 && (
+            <section className="space-y-4">
+              {!user && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-xs">
+                  <div className="flex items-center gap-2 text-amber-900">
+                    <User className="h-4 w-4 shrink-0 text-amber-700" />
+                    <span>
+                      Checking out as a <strong>Guest</strong>. Already have an account?
                     </span>
                   </div>
+                  <Link
+                    to="/login"
+                    search={{ redirect: "/checkout" }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-amber-900 hover:text-amber-950 underline underline-offset-2 shrink-0"
+                  >
+                    Sign In <ArrowRight className="h-3 w-3" />
+                  </Link>
                 </div>
+              )}
+              <Field
+                label="Email"
+                type="email"
+                placeholder="you@email.com"
+                value={contact.email}
+                onChange={(e) => setContact({ ...contact, email: e.currentTarget.value })}
+                error={contactErr.email}
+              />
+              <Field
+                label="Phone"
+                type="tel"
+                placeholder="+91 98765 43210"
+                value={contact.phone}
+                onChange={(e) => setContact({ ...contact, phone: e.currentTarget.value })}
+                error={contactErr.phone}
+              />
+              <button
+                onClick={submitContact}
+                className="mt-6 bg-foreground text-ivory px-7 py-3 rounded-full text-sm"
+              >
+                Continue to shipping
+              </button>
+            </section>
+          )}
 
-                {/* QR Code & Mobile Pay Section */}
-                <div className="flex flex-col md:flex-row items-center gap-6 justify-center bg-white p-5 rounded-lg border border-border">
-                  {/* QR Code */}
-                  <div className="flex flex-col items-center">
-                    <div className="p-3 bg-white rounded-lg border-2 border-dashed border-amber-300 shadow-sm relative group">
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                          upiUri,
-                        )}&margin=8`}
-                        alt="Admin UPI QR Code"
-                        className="w-44 h-44 object-contain rounded"
-                      />
+          {step === 2 && (
+            <section className="space-y-4">
+              <Field
+                label="Full name"
+                placeholder="Priya Sharma"
+                value={shipping.name}
+                onChange={(e) => setShipping({ ...shipping, name: e.currentTarget.value })}
+                error={shipErr.name}
+              />
+              <Field
+                label="Address line 1"
+                placeholder="House / Flat / Street"
+                value={shipping.address1}
+                onChange={(e) => setShipping({ ...shipping, address1: e.currentTarget.value })}
+                error={shipErr.address1}
+              />
+              <Field
+                label="Address line 2"
+                placeholder="Area / Landmark (optional)"
+                value={shipping.address2}
+                onChange={(e) => setShipping({ ...shipping, address2: e.currentTarget.value })}
+              />
+              <div className="grid grid-cols-3 gap-4">
+                <Field
+                  label="City"
+                  placeholder="Mumbai"
+                  value={shipping.city}
+                  onChange={(e) => setShipping({ ...shipping, city: e.currentTarget.value })}
+                  error={shipErr.city}
+                />
+                <Field
+                  label="State"
+                  placeholder="Maharashtra"
+                  value={shipping.state}
+                  onChange={(e) => setShipping({ ...shipping, state: e.currentTarget.value })}
+                  error={shipErr.state}
+                />
+                <Field
+                  label="Pincode"
+                  placeholder="400001"
+                  value={shipping.pincode}
+                  onChange={(e) => setShipping({ ...shipping, pincode: e.currentTarget.value })}
+                  error={shipErr.pincode}
+                />
+              </div>
+
+              {/* Pincode Delivery Checker */}
+              {shipping.pincode.length === 6 && (
+                <div className="mt-4 p-4 rounded-lg border border-border bg-parchment/30">
+                  {pincodeLoading ? (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span>Checking delivery availability...</span>
                     </div>
-                    <span className="text-[11px] text-muted-foreground font-medium mt-2 flex items-center gap-1">
-                      <QrCode className="w-3.5 h-3.5 text-peacock" />
-                      Scan with any UPI Scanner
-                    </span>
-                  </div>
-
-                  {/* Step-by-Step Instructions & Mobile App Trigger */}
-                  <div className="flex-1 space-y-3 max-w-sm">
-                    <h5 className="font-semibold text-xs uppercase tracking-wider text-foreground">
-                      How to complete payment:
-                    </h5>
-                    <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside leading-relaxed">
-                      <li>
-                        Open <strong>Google Pay, PhonePe, Paytm, or BHIM</strong>.
-                      </li>
-                      <li>
-                        Scan the QR code or transfer <strong>{inr(totalPayable)}</strong> to{" "}
-                        <strong className="font-mono text-foreground">
-                          {PAYMENT_CONFIG.upiId}
-                        </strong>
-                        .
-                      </li>
-                      <li>
-                        Copy the <strong>12-digit UTR / UPI Transaction ID</strong> from your
-                        payment receipt and enter it below.
-                      </li>
-                    </ol>
-
-                    {/* Direct Mobile Deep Link Button */}
-                    <div className="pt-2">
-                      <a
-                        href={upiUri}
-                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-foreground text-ivory hover:bg-peacock text-xs font-semibold rounded-md transition-colors shadow-sm"
-                      >
-                        <Smartphone className="w-4 h-4" />
-                        <span>Tap to Pay in UPI App (Mobile)</span>
-                        <ExternalLink className="w-3 h-3 opacity-70" />
-                      </a>
+                  ) : shippingResult ? (
+                    <div className="space-y-2">
+                      {shippingResult.isServiceable ? (
+                        <>
+                          <div className="flex items-center gap-2 text-xs">
+                            <Truck className="h-4 w-4 text-peacock" />
+                            <span className="font-medium text-foreground">
+                              Delivery available to {shipping.pincode}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3 text-xs">
+                            <div className="bg-white p-2.5 rounded border border-border">
+                              <span className="text-[10px] text-muted-foreground block mb-0.5">
+                                Shipping Fee
+                              </span>
+                              <span className="font-semibold text-foreground">
+                                {shippingResult.freeShipping ? (
+                                  <span className="text-emerald-600">FREE</span>
+                                ) : (
+                                  inr(shippingResult.fee)
+                                )}
+                              </span>
+                              {!shippingResult.freeShipping &&
+                                shippingResult.remainingForFreeShipping > 0 && (
+                                  <span className="text-[10px] text-muted-foreground block mt-0.5">
+                                    Free above {inr(shippingResult.freeShippingMin)}
+                                  </span>
+                                )}
+                            </div>
+                            <div className="bg-white p-2.5 rounded border border-border">
+                              <span className="text-[10px] text-muted-foreground block mb-0.5">
+                                Estimated Delivery
+                              </span>
+                              <span className="font-semibold text-foreground">
+                                {shippingResult.estimatedDays.min}–
+                                {shippingResult.estimatedDays.max} days
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded border border-border">
+                              <span className="text-[10px] text-muted-foreground block mb-0.5">
+                                Cash on Delivery
+                              </span>
+                              <span className="font-semibold text-foreground">
+                                {shippingResult.codAvailable ? (
+                                  <span className="text-emerald-600">Available</span>
+                                ) : (
+                                  <span className="text-rose">Not available</span>
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          {!shippingResult.freeShipping &&
+                            shippingResult.remainingForFreeShipping > 0 && (
+                              <p className="text-[11px] text-muted-foreground">
+                                Add {inr(shippingResult.remainingForFreeShipping)} more for free
+                                shipping
+                              </p>
+                            )}
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs">
+                          <Ban className="h-4 w-4 text-rose" />
+                          <span className="font-medium text-rose">
+                            Sorry, we don't deliver to this pincode yet
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  ) : pincodeChecked ? (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5" />
+                      <span>Enter a valid 6-digit pincode to check delivery</span>
+                    </div>
+                  ) : null}
                 </div>
+              )}
 
-                {/* UTR Input Field */}
-                <div className="bg-white p-4 rounded-lg border border-border space-y-2">
-                  <label className="block">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-semibold text-xs text-foreground flex items-center gap-1.5">
-                        <span>12-Digit Transaction / UTR / Reference ID</span>
-                        <span className="text-rose font-bold">*</span>
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        Required for order verification
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setStep(1)}
+                  className="px-6 py-3 rounded-full text-sm border border-border"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={submitShipping}
+                  className="bg-foreground text-ivory px-7 py-3 rounded-full text-sm"
+                >
+                  Continue to payment
+                </button>
+              </div>
+            </section>
+          )}
+
+          {step === 3 && (
+            <section className="space-y-6">
+              {/* Payment Method Selector */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label
+                  className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-all ${
+                    pay === "upi"
+                      ? "border-peacock bg-peacock/5 shadow-sm ring-1 ring-peacock"
+                      : "border-border hover:bg-parchment/40"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="pay"
+                    checked={pay === "upi"}
+                    onChange={() => {
+                      setPay("upi");
+                      setUtrErr("");
+                    }}
+                    className="accent-peacock mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm">Direct UPI / QR Code</span>
+                      <span className="text-[10px] uppercase tracking-wider font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
+                        Recommended
                       </span>
                     </div>
-                    <input
-                      type="text"
-                      value={utr}
-                      onChange={(e) => {
-                        setUtr(e.target.value);
-                        if (utrErr) setUtrErr("");
-                      }}
-                      placeholder="e.g. 423985712948 or UPI Ref ID"
-                      className={`w-full bg-ivory border rounded-md px-3.5 py-2.5 text-xs font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-peacock ${
-                        utrErr ? "border-rose" : "border-border"
-                      }`}
-                    />
-                  </label>
-                  {utrErr ? (
-                    <p className="text-xs text-rose flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      {utrErr}
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      GPay, PhonePe, Paytm, BHIM • Instant & 0% Fee
                     </p>
-                  ) : (
-                    <p className="text-[11px] text-muted-foreground">
-                      Found in your GPay / PhonePe / Paytm receipt under "UPI Transaction ID" or
-                      "Bank Ref No."
+                  </div>
+                </label>
+
+                <label
+                  className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-all ${
+                    pay === "cod"
+                      ? "border-peacock bg-peacock/5 shadow-sm ring-1 ring-peacock"
+                      : "border-border hover:bg-parchment/40"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="pay"
+                    checked={pay === "cod"}
+                    onChange={() => {
+                      setPay("cod");
+                      setUtrErr("");
+                    }}
+                    className="accent-peacock mt-1"
+                  />
+                  <div className="flex-1">
+                    <span className="font-semibold text-sm">Cash on Delivery</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Pay cash upon delivery • +₹49 handling
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* DIRECT UPI PAYMENT PANEL */}
+              {pay === "upi" && (
+                <div className="p-6 rounded-xl border border-amber-200 bg-gradient-to-b from-amber-50/50 to-ivory shadow-sm space-y-6">
+                  {/* Beneficiary & Amount Banner */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border/80">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-peacock block">
+                        Admin Payment Details
+                      </span>
+                      <h4 className="font-display text-base font-semibold text-foreground">
+                        {PAYMENT_CONFIG.upiName}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <code className="text-xs font-mono bg-white px-2.5 py-1 rounded border border-border text-foreground font-semibold">
+                          {PAYMENT_CONFIG.upiId}
+                        </code>
+                        <button
+                          type="button"
+                          onClick={copyUpi}
+                          className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 bg-white hover:bg-neutral-100 rounded border border-border transition-colors text-neutral-700"
+                        >
+                          {copiedUpi ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-600" />
+                              <span className="text-emerald-700 font-semibold">Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>Copy ID</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="sm:text-right">
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
+                        Amount Payable
+                      </span>
+                      <span className="font-display text-2xl font-bold text-peacock">
+                        {inr(totalPayable)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* QR Code & Mobile Pay Section */}
+                  <div className="flex flex-col md:flex-row items-center gap-6 justify-center bg-white p-5 rounded-lg border border-border">
+                    {/* QR Code */}
+                    <div className="flex flex-col items-center">
+                      <div className="p-3 bg-white rounded-lg border-2 border-dashed border-amber-300 shadow-sm relative group">
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                            upiUri,
+                          )}&margin=8`}
+                          alt="Admin UPI QR Code"
+                          className="w-44 h-44 object-contain rounded"
+                        />
+                      </div>
+                      <span className="text-[11px] text-muted-foreground font-medium mt-2 flex items-center gap-1">
+                        <QrCode className="w-3.5 h-3.5 text-peacock" />
+                        Scan with any UPI Scanner
+                      </span>
+                    </div>
+
+                    {/* Step-by-Step Instructions & Mobile App Trigger */}
+                    <div className="flex-1 space-y-3 max-w-sm">
+                      <h5 className="font-semibold text-xs uppercase tracking-wider text-foreground">
+                        How to complete payment:
+                      </h5>
+                      <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside leading-relaxed">
+                        <li>
+                          Open <strong>Google Pay, PhonePe, Paytm, or BHIM</strong>.
+                        </li>
+                        <li>
+                          Scan the QR code or transfer <strong>{inr(totalPayable)}</strong> to{" "}
+                          <strong className="font-mono text-foreground">
+                            {PAYMENT_CONFIG.upiId}
+                          </strong>
+                          .
+                        </li>
+                        <li>
+                          Copy the <strong>12-digit UTR / UPI Transaction ID</strong> from your
+                          payment receipt and enter it below.
+                        </li>
+                      </ol>
+
+                      {/* Direct Mobile Deep Link Button */}
+                      <div className="pt-2">
+                        <a
+                          href={upiUri}
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-foreground text-ivory hover:bg-peacock text-xs font-semibold rounded-md transition-colors shadow-sm"
+                        >
+                          <Smartphone className="w-4 h-4" />
+                          <span>Tap to Pay in UPI App (Mobile)</span>
+                          <ExternalLink className="w-3 h-3 opacity-70" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* UTR Input Field */}
+                  <div className="bg-white p-4 rounded-lg border border-border space-y-2">
+                    <label className="block">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-semibold text-xs text-foreground flex items-center gap-1.5">
+                          <span>12-Digit Transaction / UTR / Reference ID</span>
+                          <span className="text-rose font-bold">*</span>
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          Required for order verification
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        value={utr}
+                        onChange={(e) => {
+                          setUtr(e.target.value);
+                          if (utrErr) setUtrErr("");
+                        }}
+                        placeholder="e.g. 423985712948 or UPI Ref ID"
+                        className={`w-full bg-ivory border rounded-md px-3.5 py-2.5 text-xs font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-peacock ${
+                          utrErr ? "border-rose" : "border-border"
+                        }`}
+                      />
+                    </label>
+                    {utrErr ? (
+                      <p className="text-xs text-rose flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        {utrErr}
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground">
+                        Found in your GPay / PhonePe / Paytm receipt under "UPI Transaction ID" or
+                        "Bank Ref No."
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* COD NOTICE */}
+              {pay === "cod" && (
+                <div className="p-4 bg-muted/50 border border-border rounded-lg text-xs text-muted-foreground space-y-1">
+                  <p className="font-semibold text-foreground">Cash on Delivery Terms:</p>
+                  <p>
+                    Please keep <strong>{inr(totalPayable)}</strong> in exact cash ready at the time
+                    of delivery. A ₹49 handling charge is included.
+                  </p>
+                  {!shippingResult?.codAvailable && (
+                    <p className="text-rose font-medium">
+                      Note: COD may not be available for your pincode. Please check delivery terms.
+                    </p>
+                  )}
+                  {shippingResult?.isServiceable && (
+                    <p>
+                      Expected delivery:{" "}
+                      <strong>
+                        {shippingResult.estimatedDays.min}–{shippingResult.estimatedDays.max}{" "}
+                        business days
+                      </strong>
                     </p>
                   )}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* COD NOTICE */}
-            {pay === "cod" && (
-              <div className="p-4 bg-muted/50 border border-border rounded-lg text-xs text-muted-foreground space-y-1">
-                <p className="font-semibold text-foreground">Cash on Delivery Terms:</p>
-                <p>
-                  Please keep <strong>{inr(totalPayable)}</strong> in exact cash ready at the time
-                  of delivery. A ₹49 handling charge is included.
-                </p>
-                {!shippingResult?.codAvailable && (
-                  <p className="text-rose font-medium">
-                    Note: COD may not be available for your pincode. Please check delivery terms.
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={place}
+                  disabled={isSubmittingOrder}
+                  className="flex-1 bg-peacock text-ivory px-7 py-3 rounded-full text-sm tracking-wider flex items-center justify-center gap-2 hover:bg-peacock-deep transition-colors disabled:opacity-50"
+                >
+                  <Lock className="h-3.5 w-3.5" />
+                  {isSubmittingOrder
+                    ? "Placing Order..."
+                    : pay === "upi"
+                      ? `Submit UTR & Place Order — ${inr(totalPayable)}`
+                      : `Place COD Order — ${inr(totalPayable)}`}
+                </button>
+              </div>
+            </section>
+          )}
+        </div>
+
+        <aside className="lg:sticky lg:top-24 self-start bg-parchment/50 p-7 rounded-sm border border-border">
+          <p className="eyebrow mb-4">Order summary</p>
+          <ul className="space-y-4 max-h-72 overflow-y-auto">
+            {lines.map((l) => (
+              <li key={l.slug} className="flex gap-3">
+                <div className="relative">
+                  <img src={l.image} alt="" className="h-16 w-14 object-cover" />
+                  <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-foreground text-ivory text-[10px] flex items-center justify-center">
+                    {l.qty}
+                  </span>
+                </div>
+                <div className="flex-1 text-sm">
+                  <p className="font-medium leading-tight">{l.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{inr(l.price * l.qty)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Coupon Code Input */}
+          <div className="mt-5 pt-4 border-t border-border">
+            {appliedCoupon ? (
+              <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <Tag className="h-3.5 w-3.5 text-emerald-600" />
+                  <span className="text-xs font-semibold text-emerald-800">
+                    {appliedCoupon.code} applied: -{inr(discount)}
+                  </span>
+                </div>
+                <button
+                  onClick={handleRemoveCoupon}
+                  className="text-emerald-600 hover:text-emerald-800"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => {
+                      setCouponCode(e.target.value.toUpperCase());
+                      if (couponError) setCouponError("");
+                    }}
+                    placeholder="Coupon code"
+                    className="flex-1 bg-ivory border border-border rounded-md px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-peacock uppercase tracking-wider"
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={couponLoading || !couponCode.trim()}
+                    className="px-4 py-2 bg-foreground text-ivory rounded-md text-xs font-semibold hover:bg-peacock-deep transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {couponLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Apply"}
+                  </button>
+                </div>
+                {couponError && (
+                  <p className="mt-1.5 text-[11px] text-rose flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {couponError}
                   </p>
                 )}
-                {shippingResult?.isServiceable && (
-                  <p>
-                    Expected delivery:{" "}
-                    <strong>
-                      {shippingResult.estimatedDays.min}–{shippingResult.estimatedDays.max} business
-                      days
-                    </strong>
+              </div>
+            )}
+          </div>
+
+          {/* Referral Code Input */}
+          <div className="mt-4 pt-4 border-t border-border">
+            {referralApplied ? (
+              <div className="flex items-center justify-between bg-peacock/5 border border-peacock/20 rounded-md px-3 py-2">
+                <span className="text-xs font-semibold text-peacock">
+                  Referral: -₹{referralDiscount}
+                </span>
+                <button
+                  onClick={handleRemoveReferral}
+                  className="text-peacock hover:text-peacock-deep"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => {
+                      setReferralCode(e.target.value.toUpperCase());
+                      if (referralError) setReferralError("");
+                    }}
+                    placeholder="Referral code"
+                    className="flex-1 bg-ivory border border-border rounded-md px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-peacock uppercase tracking-wider"
+                  />
+                  <button
+                    onClick={handleApplyReferral}
+                    disabled={referralLoading || !referralCode.trim()}
+                    className="px-4 py-2 bg-foreground text-ivory rounded-md text-xs font-semibold hover:bg-peacock-deep transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {referralLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Apply"}
+                  </button>
+                </div>
+                {referralError && (
+                  <p className="mt-1.5 text-[11px] text-rose flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {referralError}
                   </p>
                 )}
               </div>
             )}
+          </div>
 
-            <div className="flex gap-3 mt-8">
-              <button
-                onClick={place}
-                disabled={isSubmittingOrder}
-                className="flex-1 bg-peacock text-ivory px-7 py-3 rounded-full text-sm tracking-wider flex items-center justify-center gap-2 hover:bg-peacock-deep transition-colors disabled:opacity-50"
-              >
-                <Lock className="h-3.5 w-3.5" />
-                {isSubmittingOrder
-                  ? "Placing Order..."
-                  : pay === "upi"
-                    ? `Submit UTR & Place Order — ${inr(totalPayable)}`
-                    : `Place COD Order — ${inr(totalPayable)}`}
-              </button>
+          <dl className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Subtotal</dt>
+              <dd>{inr(subtotal)}</dd>
             </div>
-          </section>
-        )}
+            {discount > 0 && (
+              <div className="flex justify-between text-emerald-700">
+                <dt>Discount</dt>
+                <dd>-{inr(discount)}</dd>
+              </div>
+            )}
+            {referralDiscount > 0 && (
+              <div className="flex justify-between text-peacock">
+                <dt>Referral</dt>
+                <dd>-₹{referralDiscount}</dd>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Shipping</dt>
+              <dd>{ship === 0 ? "Free" : inr(ship)}</dd>
+            </div>
+            {shippingResult?.isServiceable && (
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <dt>Estimated Delivery</dt>
+                <dd>
+                  {shippingResult.estimatedDays.min}–{shippingResult.estimatedDays.max} business
+                  days
+                </dd>
+              </div>
+            )}
+            <div className="flex justify-between font-display text-lg pt-2 border-t border-border">
+              <dt>Total</dt>
+              <dd>{inr(totalPayable)}</dd>
+            </div>
+          </dl>
+        </aside>
       </div>
-
-      <aside className="lg:sticky lg:top-24 self-start bg-parchment/50 p-7 rounded-sm border border-border">
-        <p className="eyebrow mb-4">Order summary</p>
-        <ul className="space-y-4 max-h-72 overflow-y-auto">
-          {lines.map((l) => (
-            <li key={l.slug} className="flex gap-3">
-              <div className="relative">
-                <img src={l.image} alt="" className="h-16 w-14 object-cover" />
-                <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-foreground text-ivory text-[10px] flex items-center justify-center">
-                  {l.qty}
-                </span>
-              </div>
-              <div className="flex-1 text-sm">
-                <p className="font-medium leading-tight">{l.title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{inr(l.price * l.qty)}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        {/* Coupon Code Input */}
-        <div className="mt-5 pt-4 border-t border-border">
-          {appliedCoupon ? (
-            <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2">
-              <div className="flex items-center gap-2">
-                <Tag className="h-3.5 w-3.5 text-emerald-600" />
-                <span className="text-xs font-semibold text-emerald-800">
-                  {appliedCoupon.code} applied: -{inr(discount)}
-                </span>
-              </div>
-              <button
-                onClick={handleRemoveCoupon}
-                className="text-emerald-600 hover:text-emerald-800"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ) : (
-            <div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={couponCode}
-                  onChange={(e) => {
-                    setCouponCode(e.target.value.toUpperCase());
-                    if (couponError) setCouponError("");
-                  }}
-                  placeholder="Coupon code"
-                  className="flex-1 bg-ivory border border-border rounded-md px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-peacock uppercase tracking-wider"
-                />
-                <button
-                  onClick={handleApplyCoupon}
-                  disabled={couponLoading || !couponCode.trim()}
-                  className="px-4 py-2 bg-foreground text-ivory rounded-md text-xs font-semibold hover:bg-peacock-deep transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  {couponLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Apply"}
-                </button>
-              </div>
-              {couponError && (
-                <p className="mt-1.5 text-[11px] text-rose flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  {couponError}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Referral Code Input */}
-        <div className="mt-4 pt-4 border-t border-border">
-          {referralApplied ? (
-            <div className="flex items-center justify-between bg-peacock/5 border border-peacock/20 rounded-md px-3 py-2">
-              <span className="text-xs font-semibold text-peacock">
-                Referral: -₹{referralDiscount}
-              </span>
-              <button
-                onClick={handleRemoveReferral}
-                className="text-peacock hover:text-peacock-deep"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ) : (
-            <div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={referralCode}
-                  onChange={(e) => {
-                    setReferralCode(e.target.value.toUpperCase());
-                    if (referralError) setReferralError("");
-                  }}
-                  placeholder="Referral code"
-                  className="flex-1 bg-ivory border border-border rounded-md px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-peacock uppercase tracking-wider"
-                />
-                <button
-                  onClick={handleApplyReferral}
-                  disabled={referralLoading || !referralCode.trim()}
-                  className="px-4 py-2 bg-foreground text-ivory rounded-md text-xs font-semibold hover:bg-peacock-deep transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  {referralLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Apply"}
-                </button>
-              </div>
-              {referralError && (
-                <p className="mt-1.5 text-[11px] text-rose flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  {referralError}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        <dl className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Subtotal</dt>
-            <dd>{inr(subtotal)}</dd>
-          </div>
-          {discount > 0 && (
-            <div className="flex justify-between text-emerald-700">
-              <dt>Discount</dt>
-              <dd>-{inr(discount)}</dd>
-            </div>
-          )}
-          {referralDiscount > 0 && (
-            <div className="flex justify-between text-peacock">
-              <dt>Referral</dt>
-              <dd>-₹{referralDiscount}</dd>
-            </div>
-          )}
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Shipping</dt>
-            <dd>{ship === 0 ? "Free" : inr(ship)}</dd>
-          </div>
-          {shippingResult?.isServiceable && (
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <dt>Estimated Delivery</dt>
-              <dd>
-                {shippingResult.estimatedDays.min}–{shippingResult.estimatedDays.max} business days
-              </dd>
-            </div>
-          )}
-          <div className="flex justify-between font-display text-lg pt-2 border-t border-border">
-            <dt>Total</dt>
-            <dd>{inr(totalPayable)}</dd>
-          </div>
-        </dl>
-      </aside>
-    </div>
+    </>
   );
 }
 

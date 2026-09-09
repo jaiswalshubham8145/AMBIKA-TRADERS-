@@ -107,7 +107,7 @@ function AccountPage() {
       loadOrders();
       getOrCreateReferral(user.email || "", profile?.full_name || undefined).then(setReferralCode);
     }
-  }, [user]);
+  }, [user, profile?.full_name]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -147,7 +147,9 @@ function AccountPage() {
                   Ambika Traders Management Console
                 </h2>
                 <p className="text-xs text-neutral-300 mt-1.5 max-w-2xl leading-relaxed">
-                  You have full administrator privileges. This screen displays your customer profile & personal test orders. Click below to enter the full executive Admin Panel to manage catalog products, live orders, discount coupons, and fulfillment.
+                  You have full administrator privileges. This screen displays your customer profile
+                  & personal test orders. Click below to enter the full executive Admin Panel to
+                  manage catalog products, live orders, discount coupons, and fulfillment.
                 </p>
               </div>
             </div>
@@ -214,7 +216,8 @@ function AccountPage() {
             {isAdmin ? "Store Administrator Profile" : "Atelier Member"}
           </span>
           <h1 className="font-serif text-3xl text-foreground mt-1">
-            Namaste, {profile?.full_name || user.email?.split("@")[0] || (isAdmin ? "Admin" : "Customer")}
+            Namaste,{" "}
+            {profile?.full_name || user.email?.split("@")[0] || (isAdmin ? "Admin" : "Customer")}
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
             {isAdmin

@@ -139,19 +139,6 @@ function Checkout() {
     }
   }, [user, profile]);
 
-  // Auto-check pincode when shipping pincode changes (debounced)
-  useEffect(() => {
-    if (pincodeTimerRef.current) clearTimeout(pincodeTimerRef.current);
-    if (shipping.pincode.length === 6) {
-      pincodeTimerRef.current = setTimeout(() => {
-        handlePincodeCheck(shipping.pincode);
-      }, 500);
-    }
-    return () => {
-      if (pincodeTimerRef.current) clearTimeout(pincodeTimerRef.current);
-    };
-  }, [shipping.pincode]);
-
   const handlePincodeCheck = useCallback(
     async (pincode: string) => {
       if (pincode.length < 6) {
@@ -173,6 +160,19 @@ function Checkout() {
     },
     [subtotal],
   );
+
+  // Auto-check pincode when shipping pincode changes (debounced)
+  useEffect(() => {
+    if (pincodeTimerRef.current) clearTimeout(pincodeTimerRef.current);
+    if (shipping.pincode.length === 6) {
+      pincodeTimerRef.current = setTimeout(() => {
+        handlePincodeCheck(shipping.pincode);
+      }, 500);
+    }
+    return () => {
+      if (pincodeTimerRef.current) clearTimeout(pincodeTimerRef.current);
+    };
+  }, [shipping.pincode, handlePincodeCheck]);
 
   const submitContact = () => {
     const parsed = contactSchema.safeParse(contact);

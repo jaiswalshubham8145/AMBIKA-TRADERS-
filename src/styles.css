@@ -1,6 +1,11 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "@fontsource/bodoni-moda/400.css";
+@import "@fontsource/bodoni-moda/500.css";
+@import "@fontsource/bodoni-moda/600.css";
+@import "@fontsource/bodoni-moda/700.css";
+@import "@fontsource/bodoni-moda/400-italic.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -52,12 +57,12 @@
   --color-rose: var(--rose);
   --color-gold: var(--gold);
   --color-ink: var(--ink);
-  --font-display: "Fraunces", "Cormorant Garamond", Georgia, serif;
+  --font-display: "Bodoni Moda", "Didot", "Bodoni MT", Georgia, serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
-  --radius: 0.25rem;
+  --radius: 0.875rem;
 
   /* Ambika Traders — Ivory Luxe palette */
   --ivory: oklch(0.957 0.018 86); /* #F5EFE3 base */
@@ -157,4 +162,58 @@
     background-image: radial-gradient(rgba(0, 0, 0, 0.6) 1px, transparent 1px);
     background-size: 3px 3px;
   }
+}
+
+/* Lenis Smooth Scroll Core Rules */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* 2.5D Tactile Elevation & Specular Sheen */
+@utility elevation-25d {
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform, box-shadow;
+  box-shadow:
+    0 4px 16px -2px rgba(14, 110, 107, 0.06),
+    0 2px 6px -1px rgba(0, 0, 0, 0.04);
+}
+
+@utility elevation-25d-hover {
+  &:hover,
+  &:active {
+    transform: translateY(-4px) scale(1.015);
+    box-shadow:
+      0 22px 38px -10px rgba(14, 110, 107, 0.18),
+      0 10px 18px -4px rgba(0, 0, 0, 0.06);
+  }
+}
+
+@keyframes sheenGlide {
+  0% {
+    transform: translateX(-100%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+  }
+}
+
+.animate-sheen {
+  animation: sheenGlide 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }

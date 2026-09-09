@@ -48,8 +48,8 @@ function Terms() {
         <section>
           <h2 className="font-display text-2xl mb-3 text-foreground">Intellectual property</h2>
           <p>
-            All content, imagery and designs on this site are the property of Ambika Traders and
-            may not be reproduced without permission.
+            All content, imagery and designs on this site are the property of Ambika Traders and may
+            not be reproduced without permission.
           </p>
         </section>
         <section>

@@ -2,7 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadProductImage, validateFile } from "@/lib/storage";
-import { inr, resolveImageUrl, signProductImageUrls, signSingleProductImageUrl } from "@/lib/products";
+import {
+  inr,
+  resolveImageUrl,
+  signProductImageUrls,
+  signSingleProductImageUrl,
+} from "@/lib/products";
 import { toast } from "sonner";
 import {
   Package,
@@ -187,13 +192,16 @@ function ImageUpload({
                 (e.target as HTMLImageElement).src = "/product-peacock-crimson.jpg";
               }}
             />
-            <p className="text-[11px] text-neutral-500 font-medium">Click or drag another image to replace</p>
+            <p className="text-[11px] text-neutral-500 font-medium">
+              Click or drag another image to replace
+            </p>
           </div>
         ) : (
           <div className="space-y-2 py-2">
             <Upload className="w-6 h-6 mx-auto text-neutral-400" />
             <p className="text-xs text-neutral-500">
-              <span className="font-medium text-neutral-700">Click to upload photo</span> or drag and drop
+              <span className="font-medium text-neutral-700">Click to upload photo</span> or drag
+              and drop
             </p>
             <p className="text-[10px] text-neutral-400">JPEG, PNG, WEBP, AVIF up to 5MB</p>
           </div>

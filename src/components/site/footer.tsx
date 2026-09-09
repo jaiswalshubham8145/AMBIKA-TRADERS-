@@ -10,8 +10,8 @@ export function SiteFooter() {
             Ambika <span className="text-peacock">Traders</span>
           </h3>
           <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-            Hand-crafted festive luxury — exquisite rakhis, Krishna vastra, heirloom
-            jewellery and curated beauty. Made in India, gifted with intention.
+            Hand-crafted festive luxury — exquisite rakhis, Krishna vastra, heirloom jewellery and
+            curated beauty. Made in India, gifted with intention.
           </p>
           <form
             onSubmit={(e) => {

@@ -54,7 +54,9 @@ export async function signSingleProductImageUrl(url: string | null | undefined):
   if (match) {
     const filename = decodeURIComponent(match[1]);
     try {
-      const { data } = await supabase.storage.from("product-images").createSignedUrl(filename, 315360000);
+      const { data } = await supabase.storage
+        .from("product-images")
+        .createSignedUrl(filename, 315360000);
       if (data?.signedUrl) {
         signedUrlCache.set(url, data.signedUrl);
         return data.signedUrl;
@@ -92,7 +94,9 @@ export async function signProductImageUrls<T extends { image_url?: string | null
 
   try {
     const filenames = needSigning.map((n) => n.filename);
-    const { data } = await supabase.storage.from("product-images").createSignedUrls(filenames, 315360000);
+    const { data } = await supabase.storage
+      .from("product-images")
+      .createSignedUrls(filenames, 315360000);
     if (data && Array.isArray(data)) {
       data.forEach((signedItem, i) => {
         if (signedItem?.signedUrl) {
@@ -298,7 +302,8 @@ export const fallbackProducts: Product[] = [
     price: 449,
     image: pKalash,
     motif: "Kalash",
-    description: "A devotional kalash motif set in antique-finish craftsmanship on warm cream thread.",
+    description:
+      "A devotional kalash motif set in antique-finish craftsmanship on warm cream thread.",
     included: ["Premium gift box", "Roli-Chawal sachet"],
     rating: 4.8,
     reviews: 86,
@@ -343,7 +348,8 @@ export const fallbackProducts: Product[] = [
     price: 399,
     image: pSwastik,
     motif: "Swastik",
-    description: "Auspicious swastik motif in antique gold with delicate stone work on maroon silk thread.",
+    description:
+      "Auspicious swastik motif in antique gold with delicate stone work on maroon silk thread.",
     included: ["Premium gift box", "Roli-Chawal sachet"],
     rating: 4.8,
     reviews: 62,

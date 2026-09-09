@@ -288,34 +288,34 @@ A living document of what is complete on the storefront and what still needs to 
 
 ## Database Migrations
 
-| # | File | Purpose |
-|---|------|---------|
-| 01 | `01_auth_and_roles.sql` | Auth, profiles, roles, trigger |
-| 02 | `02_upi_payments.sql` | UPI payments, transaction IDs |
-| 03 | `03_coupons_and_storage.sql` | Coupons table, storage policies |
-| 04 | `04_shipping_and_fulfillment.sql` | Shipping rules, order fulfillment columns |
-| 05 | `05_content_tables.sql` | Blog posts, testimonials, Instagram |
-| 06 | `06_cart_events.sql` | Cart analytics, abandoned cart tracking |
-| 07 | `07_gift_cards.sql` | Gift card system |
-| 08 | `08_referrals.sql` | Referral code system |
+| #   | File                              | Purpose                                   |
+| --- | --------------------------------- | ----------------------------------------- |
+| 01  | `01_auth_and_roles.sql`           | Auth, profiles, roles, trigger            |
+| 02  | `02_upi_payments.sql`             | UPI payments, transaction IDs             |
+| 03  | `03_coupons_and_storage.sql`      | Coupons table, storage policies           |
+| 04  | `04_shipping_and_fulfillment.sql` | Shipping rules, order fulfillment columns |
+| 05  | `05_content_tables.sql`           | Blog posts, testimonials, Instagram       |
+| 06  | `06_cart_events.sql`              | Cart analytics, abandoned cart tracking   |
+| 07  | `07_gift_cards.sql`               | Gift card system                          |
+| 08  | `08_referrals.sql`                | Referral code system                      |
 
 ---
 
 ## Environment Variables
 
-| Variable | Purpose |
-|----------|---------|
-| `VITE_SUPABASE_URL` | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key |
-| `VITE_ADMIN_UPI_ID` | Admin UPI VPA for payments |
-| `VITE_ADMIN_UPI_NAME` | Admin display name for UPI |
-| `VITE_ADMIN_WHATSAPP_PHONE` | Admin WhatsApp number for alerts |
-| `VITE_CALLMEBOT_API_KEY` | CallMeBot free WhatsApp API key |
-| `VITE_SHIPROCKET_API_URL` | Shiprocket API base URL |
-| `VITE_SHIPROCKET_EMAIL` | Shiprocket login email |
-| `VITE_SHIPROCKET_PASSWORD` | Shiprocket login password |
-| `VITE_GA4_ID` | Google Analytics 4 measurement ID |
-| `VITE_META_PIXEL_ID` | Meta Pixel ID |
+| Variable                    | Purpose                           |
+| --------------------------- | --------------------------------- |
+| `VITE_SUPABASE_URL`         | Supabase project URL              |
+| `VITE_SUPABASE_ANON_KEY`    | Supabase anonymous key            |
+| `VITE_ADMIN_UPI_ID`         | Admin UPI VPA for payments        |
+| `VITE_ADMIN_UPI_NAME`       | Admin display name for UPI        |
+| `VITE_ADMIN_WHATSAPP_PHONE` | Admin WhatsApp number for alerts  |
+| `VITE_CALLMEBOT_API_KEY`    | CallMeBot free WhatsApp API key   |
+| `VITE_SHIPROCKET_API_URL`   | Shiprocket API base URL           |
+| `VITE_SHIPROCKET_EMAIL`     | Shiprocket login email            |
+| `VITE_SHIPROCKET_PASSWORD`  | Shiprocket login password         |
+| `VITE_GA4_ID`               | Google Analytics 4 measurement ID |
+| `VITE_META_PIXEL_ID`        | Meta Pixel ID                     |
 
 ---
 

@@ -1,5 +1,14 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ShoppingBag, Menu, X, Search, Heart, User as UserIcon, ShieldAlert, ShieldCheck } from "lucide-react";
+import {
+  ShoppingBag,
+  Menu,
+  X,
+  Search,
+  Heart,
+  User as UserIcon,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { cartCount, useCart } from "@/lib/cart";
@@ -202,7 +211,9 @@ export function SiteHeader() {
                   </div>
                   <div>
                     <div className="font-semibold text-sm text-white">Admin Management Console</div>
-                    <div className="text-[11px] text-neutral-400">Products, Orders, Customers & Settings</div>
+                    <div className="text-[11px] text-neutral-400">
+                      Products, Orders, Customers & Settings
+                    </div>
                   </div>
                 </div>
                 <span className="text-[11px] uppercase tracking-wider font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded">
@@ -216,7 +227,11 @@ export function SiteHeader() {
               className="py-3 text-base border-b border-border/60 flex items-center justify-between"
             >
               <span>{user ? (isAdmin ? "Admin Portal" : "My Account") : "Sign In / Register"}</span>
-              {user && <span className="text-xs text-primary font-medium">{isAdmin ? "Administrator" : "Logged In"}</span>}
+              {user && (
+                <span className="text-xs text-primary font-medium">
+                  {isAdmin ? "Administrator" : "Logged In"}
+                </span>
+              )}
             </Link>
             <button
               type="button"

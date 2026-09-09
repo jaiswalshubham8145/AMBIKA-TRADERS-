@@ -14,6 +14,8 @@ import appCss from "../styles.css?url";
 import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
 import { CartDrawer } from "@/components/site/cart-drawer";
+import { SmoothScrollProvider } from "@/components/site/smooth-scroll-provider";
+import { ScrollProgressBar } from "@/components/site/scroll-progress-bar";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import { trackPageView } from "@/lib/analytics";
@@ -96,6 +98,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -162,14 +170,17 @@ function RootComponent() {
         {isAdminRoute ? (
           <Outlet />
         ) : (
-          <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <SiteHeader />
-            <main className="flex-1">
-              <Outlet />
-            </main>
-            <SiteFooter />
-            <CartDrawer />
-          </div>
+          <SmoothScrollProvider>
+            <ScrollProgressBar />
+            <div className="min-h-screen flex flex-col bg-background text-foreground">
+              <SiteHeader />
+              <main className="flex-1">
+                <Outlet />
+              </main>
+              <SiteFooter />
+              <CartDrawer />
+            </div>
+          </SmoothScrollProvider>
         )}
         <Toaster position="top-right" richColors closeButton />
       </AuthProvider>

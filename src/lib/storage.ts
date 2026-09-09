@@ -107,7 +107,10 @@ export async function uploadProductImage(
     });
 
     if (uploadError) {
-      console.warn("Supabase storage upload error, falling back to optimized inline data URL:", uploadError.message);
+      console.warn(
+        "Supabase storage upload error, falling back to optimized inline data URL:",
+        uploadError.message,
+      );
       onProgress?.(50);
       const dataUrl = await fileToCompressedDataUrl(file);
       onProgress?.(100);
@@ -122,7 +125,9 @@ export async function uploadProductImage(
     // Try to create a long-lived signed URL (10 years) so it displays regardless of bucket privacy
     let finalUrl = "";
     try {
-      const { data: signedData } = await supabase.storage.from(BUCKET).createSignedUrl(path, 315360000);
+      const { data: signedData } = await supabase.storage
+        .from(BUCKET)
+        .createSignedUrl(path, 315360000);
       if (signedData?.signedUrl) {
         finalUrl = signedData.signedUrl;
       }

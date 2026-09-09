@@ -36,9 +36,9 @@ function About() {
 
       <section className="mx-auto max-w-[720px] px-6 py-20 space-y-8 text-lg leading-relaxed text-muted-foreground">
         <p>
-          Ambika Traders began with a single peacock rakhi — hand-set with exquisite stones,
-          packed in a gold-foil box — and a quiet conviction that the bond between siblings, between
-          a devotee and her Krishna, between a mother and her daughter, deserves more than a token.
+          Ambika Traders began with a single peacock rakhi — hand-set with exquisite stones, packed
+          in a gold-foil box — and a quiet conviction that the bond between siblings, between a
+          devotee and her Krishna, between a mother and her daughter, deserves more than a token.
         </p>
         <p>
           We are a small atelier, not a marketplace. We make fewer pieces, finish them better, and

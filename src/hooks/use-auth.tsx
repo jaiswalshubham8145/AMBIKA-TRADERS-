@@ -117,8 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           newSession.user.user_metadata?.name ||
           newSession.user.user_metadata?.custom_claims?.name;
         const metaAvatar =
-          newSession.user.user_metadata?.avatar_url ||
-          newSession.user.user_metadata?.picture;
+          newSession.user.user_metadata?.avatar_url || newSession.user.user_metadata?.picture;
 
         if (userProf && !userProf.full_name && metaName) {
           try {

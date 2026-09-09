@@ -21,7 +21,7 @@
   - Dynamic NPCI-compliant UPI QR generation and instant deep-links (GPay, PhonePe, Paytm).
   - 1-tap WhatsApp order notification system formatted with complete order details and direct verification links.
 - **Full E-Commerce Journey**:
-  - Interactive multi-category catalog: *Rakhis*, *Krishna Vastra*, *Jewellery*, and *Makeup*.
+  - Interactive multi-category catalog: _Rakhis_, _Krishna Vastra_, _Jewellery_, and _Makeup_.
   - Persistent shopping cart drawer and wishlist with shareable links.
   - Dynamic gift cards with denomination selectors and balance checker.
   - Comprehensive checkout with pincode validation, coupon codes, and referral discounts.
@@ -34,16 +34,16 @@
 
 ## 🛠️ Technology Stack
 
-| Layer | Technology |
-| :--- | :--- |
-| **Framework** | [TanStack Start](https://tanstack.com/start) + [React 19](https://react.dev) |
-| **Routing** | [TanStack Router](https://tanstack.com/router) (type-safe file-based routing) |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com) + Vanilla CSS Design Tokens |
-| **Animation** | [Framer Motion](https://www.framer.com/motion/) + [Lenis](https://lenis.darkroom.engineering/) |
-| **State Management** | [Zustand](https://github.com/pmndrs/zustand) with localStorage persistence |
-| **Database & Auth** | [Supabase](https://supabase.com) (PostgreSQL, Row Level Security, Storage) |
-| **Validation** | [Zod](https://zod.dev) |
-| **Icons** | [Lucide React](https://lucide.dev) |
+| Layer                | Technology                                                                                     |
+| :------------------- | :--------------------------------------------------------------------------------------------- |
+| **Framework**        | [TanStack Start](https://tanstack.com/start) + [React 19](https://react.dev)                   |
+| **Routing**          | [TanStack Router](https://tanstack.com/router) (type-safe file-based routing)                  |
+| **Styling**          | [Tailwind CSS v4](https://tailwindcss.com) + Vanilla CSS Design Tokens                         |
+| **Animation**        | [Framer Motion](https://www.framer.com/motion/) + [Lenis](https://lenis.darkroom.engineering/) |
+| **State Management** | [Zustand](https://github.com/pmndrs/zustand) with localStorage persistence                     |
+| **Database & Auth**  | [Supabase](https://supabase.com) (PostgreSQL, Row Level Security, Storage)                     |
+| **Validation**       | [Zod](https://zod.dev)                                                                         |
+| **Icons**            | [Lucide React](https://lucide.dev)                                                             |
 
 ---
 
@@ -76,11 +76,14 @@
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
+
 - **Node.js** 20.0 or higher
 - **npm** or **bun**
 
 ### 2. Installation
+
 Clone the repository and install dependencies:
+
 ```bash
 git clone https://github.com/jaiswalshubham8145/AMBIKA-TRADERS-.git
 cd AMBIKA-TRADERS-
@@ -88,12 +91,15 @@ npm install
 ```
 
 ### 3. Environment Variables
+
 Copy `.env.example` to `.env` and configure your credentials:
+
 ```bash
 cp .env.example .env
 ```
 
 Set the following variables in `.env`:
+
 ```env
 # Supabase Configuration
 VITE_SUPABASE_URL=https://your-project.supabase.co
@@ -113,7 +119,9 @@ VITE_META_PIXEL_ID=
 ```
 
 ### 4. Database Setup
+
 Run the SQL scripts in `supabase/migrations/` sequentially inside your **Supabase SQL Editor**:
+
 1. `01_auth_and_roles.sql`
 2. `02_upi_payments.sql`
 3. `03_coupons_and_storage.sql`
@@ -124,10 +132,13 @@ Run the SQL scripts in `supabase/migrations/` sequentially inside your **Supabas
 8. `08_referrals.sql`
 
 ### 5. Running Locally
+
 Start the development server:
+
 ```bash
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) to view the storefront.
 
 ---

@@ -36,3 +36,5 @@ dist-ssr
 tsconfig.tsbuildinfo
 .workspace/
 supabase/.temp/
+supabase/migrations/
+supabase/schema.sql

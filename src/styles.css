@@ -1,11 +1,19 @@
-@import "tailwindcss" source(none);
-@source "../src";
+@import "tailwindcss";
 @import "tw-animate-css";
 @import "@fontsource/bodoni-moda/400.css";
 @import "@fontsource/bodoni-moda/500.css";
 @import "@fontsource/bodoni-moda/600.css";
 @import "@fontsource/bodoni-moda/700.css";
 @import "@fontsource/bodoni-moda/400-italic.css";
+@import "@fontsource/cinzel/400.css";
+@import "@fontsource/cinzel/500.css";
+@import "@fontsource/cinzel/600.css";
+@import "@fontsource/cinzel/700.css";
+@import "@fontsource/cinzel/800.css";
+@import "@fontsource/cinzel/900.css";
+@import "@fontsource/cinzel-decorative/400.css";
+@import "@fontsource/cinzel-decorative/700.css";
+@import "@fontsource/cinzel-decorative/900.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -59,6 +67,8 @@
   --color-ink: var(--ink);
   --font-display: "Bodoni Moda", "Didot", "Bodoni MT", Georgia, serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-cinzel: "Cinzel", "Cinzel Decorative", serif;
+  --font-cinzel-decorative: "Cinzel Decorative", "Cinzel", serif;
 }
 
 :root {
@@ -216,4 +226,12 @@ html.lenis body {
 
 .animate-sheen {
   animation: sheenGlide 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@utility font-cinzel {
+  font-family: var(--font-cinzel);
+}
+
+@utility font-cinzel-decorative {
+  font-family: var(--font-cinzel-decorative);
 }

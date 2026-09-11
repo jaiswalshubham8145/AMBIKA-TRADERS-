@@ -102,6 +102,14 @@ export function SiteFooter() {
                 Wishlist
               </Link>
             </li>
+            <li>
+              <Link to="/maker" className="hover:text-peacock flex items-center gap-1.5">
+                The Maker
+                <span className="text-[9px] uppercase font-mono tracking-wider px-1.5 py-0.5 rounded bg-peacock/10 text-peacock font-medium">
+                  Artificer
+                </span>
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -153,8 +161,18 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-border">
-        <div className="mx-auto max-w-[1400px] px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div className="mx-auto max-w-[1400px] px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} Ambika Traders. All rights reserved.</p>
+          <Link
+            to="/maker"
+            className="inline-flex items-center gap-1.5 text-foreground hover:text-peacock transition-colors group"
+          >
+            <span>Maker &amp; Developer:</span>
+            <span className="font-semibold text-peacock underline-offset-4 group-hover:underline">
+              Shubham Jaiswal
+            </span>
+            <span className="text-[10px] text-muted-foreground">· The Maker</span>
+          </Link>
           <p>Crafted in India · Shipped with love</p>
         </div>
       </div>

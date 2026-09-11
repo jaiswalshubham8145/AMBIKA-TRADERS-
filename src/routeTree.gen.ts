@@ -16,9 +16,11 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CreditsRouteImport } from './routes/credits'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as GiftCardsRouteImport } from './routes/gift-cards'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MakerRouteImport } from './routes/maker'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ShippingReturnsRouteImport } from './routes/shipping-returns'
@@ -79,6 +81,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreditsRoute = CreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -92,6 +99,11 @@ const GiftCardsRoute = GiftCardsRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MakerRoute = MakerRouteImport.update({
+  id: '/maker',
+  path: '/maker',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -223,9 +235,11 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/credits': typeof CreditsRoute
   '/faq': typeof FaqRoute
   '/gift-cards': typeof GiftCardsRoute
   '/login': typeof LoginRoute
+  '/maker': typeof MakerRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shipping-returns': typeof ShippingReturnsRoute
@@ -258,9 +272,11 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/credits': typeof CreditsRoute
   '/faq': typeof FaqRoute
   '/gift-cards': typeof GiftCardsRoute
   '/login': typeof LoginRoute
+  '/maker': typeof MakerRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shipping-returns': typeof ShippingReturnsRoute
@@ -294,9 +310,11 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/credits': typeof CreditsRoute
   '/faq': typeof FaqRoute
   '/gift-cards': typeof GiftCardsRoute
   '/login': typeof LoginRoute
+  '/maker': typeof MakerRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shipping-returns': typeof ShippingReturnsRoute
@@ -332,9 +350,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/credits'
     | '/faq'
     | '/gift-cards'
     | '/login'
+    | '/maker'
     | '/privacy'
     | '/reset-password'
     | '/shipping-returns'
@@ -367,9 +387,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/credits'
     | '/faq'
     | '/gift-cards'
     | '/login'
+    | '/maker'
     | '/privacy'
     | '/reset-password'
     | '/shipping-returns'
@@ -402,9 +424,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/credits'
     | '/faq'
     | '/gift-cards'
     | '/login'
+    | '/maker'
     | '/privacy'
     | '/reset-password'
     | '/shipping-returns'
@@ -439,9 +463,11 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
+  CreditsRoute: typeof CreditsRoute
   FaqRoute: typeof FaqRoute
   GiftCardsRoute: typeof GiftCardsRoute
   LoginRoute: typeof LoginRoute
+  MakerRoute: typeof MakerRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ShippingReturnsRoute: typeof ShippingReturnsRoute
@@ -506,6 +532,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/credits': {
+      id: '/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof CreditsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faq': {
       id: '/faq'
       path: '/faq'
@@ -525,6 +558,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maker': {
+      id: '/maker'
+      path: '/maker'
+      fullPath: '/maker'
+      preLoaderRoute: typeof MakerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -748,9 +788,11 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
+  CreditsRoute: CreditsRoute,
   FaqRoute: FaqRoute,
   GiftCardsRoute: GiftCardsRoute,
   LoginRoute: LoginRoute,
+  MakerRoute: MakerRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ShippingReturnsRoute: ShippingReturnsRoute,

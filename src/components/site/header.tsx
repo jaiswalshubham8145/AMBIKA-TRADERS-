@@ -22,6 +22,7 @@ const nav = [
   { to: "/shop/makeup", label: "Makeup" },
   { to: "/shop", label: "Shop All" },
   { to: "/about", label: "Our Story" },
+  { to: "/maker", label: "The Maker" },
 ];
 
 export function SiteHeader() {

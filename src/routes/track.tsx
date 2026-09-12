@@ -13,7 +13,6 @@ import {
   Loader2,
   ExternalLink,
   MessageCircle,
-  ArrowRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/track")({
@@ -341,34 +340,6 @@ function TrackOrderPage() {
             <div className="mt-4 pt-3 border-t border-border flex justify-between text-sm font-bold">
               <span>Total</span>
               <span>{inr(order.total)}</span>
-            </div>
-          </div>
-
-          {/* A Note from the Maker */}
-          <div className="p-4 sm:p-5 bg-parchment/40 border border-gold/40 rounded-2xl text-left shadow-sm relative overflow-hidden backdrop-blur-xs">
-            <div className="flex items-start gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-peacock text-ivory flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border border-gold/40 font-display">
-                SJ
-              </div>
-              <div className="space-y-1.5 flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-mono tracking-widest text-peacock font-semibold">
-                    A Note From The Maker
-                  </span>
-                  <span className="text-[10px] text-muted-foreground italic">Shubham Jaiswal</span>
-                </div>
-                <p className="text-xs text-foreground/80 leading-relaxed italic">
-                  &ldquo;Every parcel leaving our atelier carries a touch of digital and artisanal
-                  devotion.&rdquo;
-                </p>
-                <Link
-                  to="/maker"
-                  className="inline-flex items-center gap-1 text-[11px] font-medium text-peacock hover:underline pt-0.5"
-                >
-                  <span>Read the Maker&apos;s Testament</span>
-                  <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
             </div>
           </div>
 

@@ -539,34 +539,6 @@ function Checkout() {
           </div>
         )}
 
-        {/* Suggestion 3: A Note from the Maker on Order Confirmation */}
-        <div className="mt-6 p-5 bg-parchment/40 border border-gold/40 rounded-2xl text-left max-w-md mx-auto shadow-sm relative overflow-hidden backdrop-blur-xs">
-          <div className="flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-peacock text-ivory flex items-center justify-center font-bold text-sm shrink-0 shadow-sm border border-gold/40 font-display">
-              SJ
-            </div>
-            <div className="space-y-1.5 flex-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-mono tracking-widest text-peacock font-semibold">
-                  A Note From The Maker
-                </span>
-                <span className="text-[10px] text-muted-foreground italic">Shubham Jaiswal</span>
-              </div>
-              <p className="text-xs text-foreground/80 leading-relaxed italic">
-                &ldquo;Your heirloom is being prepared with intention. Every stitch, stone, and line
-                of code was crafted with quiet grandeur.&rdquo;
-              </p>
-              <Link
-                to="/maker"
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-peacock hover:underline pt-0.5"
-              >
-                <span>Read the Maker&apos;s Testament</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-          </div>
-        </div>
-
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           {user && (
             <Link

@@ -336,74 +336,76 @@ function Checkout() {
 
     try {
       setIsSubmittingOrder(true);
-      const giftLine = lines.find((l) => l.giftMessage);
-      const giftDetail = giftLine?.giftMessage
-        ? {
-            recipientName: shipping.name,
-            message: giftLine.giftMessage,
-            giftWrap: true,
-          }
-        : null;
-
       const isUpi = pay === "upi";
       const cleanUtr = isUpi ? utr.trim() : null;
 
+      // Generate client-side UUID upfront to ensure guaranteed reference without RLS RETURNING restriction
+      const orderId = crypto.randomUUID();
+      const giftLine = lines.find((l) => l.giftMessage);
+
+      // Pack gift and referral data into the supported JSONB gift_detail column
+      const giftDetail = {
+        recipientName: shipping.name,
+        message: giftLine?.giftMessage || null,
+        giftWrap: !!giftLine?.giftMessage,
+        referralCode: referralApplied ? referralCode : null,
+        referralDiscount: referralDiscount || 0,
+      };
+
       // Persist order in Supabase
-      const { data: orderData, error: orderErr } = await supabase
-        .from("orders")
-        .insert([
-          {
-            user_id: user?.id || null,
-            guest_email: contact.email,
-            guest_phone: contact.phone,
-            status: "PENDING",
-            payment_method: isUpi ? "UPI" : "COD",
-            payment_status: isUpi ? "VERIFICATION_PENDING" : "UNPAID",
-            transaction_id: cleanUtr,
-            subtotal,
-            shipping_total: ship,
-            discount_total: discount,
-            total: totalPayable,
-            shipping_address: shipping,
-            gift_detail: giftDetail,
-            applied_coupon_code: appliedCoupon?.code || null,
-            referral_code: referralApplied ? referralCode : null,
-            referral_discount: referralDiscount,
-          },
-        ])
-        .select("id")
-        .single();
+      const { error: orderErr } = await supabase.from("orders").insert([
+        {
+          id: orderId,
+          user_id: user?.id || null,
+          guest_email: contact.email,
+          guest_phone: contact.phone,
+          status: "PENDING",
+          payment_method: isUpi ? "UPI" : "COD",
+          payment_status: isUpi ? "VERIFICATION_PENDING" : "UNPAID",
+          transaction_id: cleanUtr,
+          subtotal,
+          shipping_total: ship,
+          discount_total: discount,
+          total: totalPayable,
+          shipping_address: shipping,
+          gift_detail: giftDetail,
+          applied_coupon_code: appliedCoupon?.code || null,
+        },
+      ]);
 
       if (orderErr) {
-        console.error("Order creation fallback:", orderErr);
+        console.error("Order creation failed in Supabase:", orderErr);
+        toast.error(`Order could not be saved: ${orderErr.message || "Database error"}`);
+        setIsSubmittingOrder(false);
+        return;
       }
 
-      const refId = orderData?.id || Math.random().toString(36).substring(2, 10).toUpperCase();
-      setPlacedOrderId(refId);
+      setPlacedOrderId(orderId);
       setPlacedOrderUtr(cleanUtr || "");
 
-      // Insert line items
-      if (orderData?.id) {
-        const itemsPayload = lines.map((l) => ({
-          order_id: orderData.id,
-          product_slug: l.slug,
-          title: l.title,
-          unit_price: l.price,
-          quantity: l.qty,
-          image_url: l.image,
-        }));
+      // Insert line items with the confirmed order ID
+      const itemsPayload = lines.map((l) => ({
+        order_id: orderId,
+        product_slug: l.slug,
+        title: l.title,
+        unit_price: l.price,
+        quantity: l.qty,
+        image_url: l.image,
+      }));
 
-        await supabase.from("order_items").insert(itemsPayload);
+      const { error: itemsErr } = await supabase.from("order_items").insert(itemsPayload);
+      if (itemsErr) {
+        console.error("Order items creation warning:", itemsErr);
+      }
 
-        // Redeem referral code if applied
-        if (referralApplied && referralCode && orderData.id) {
-          redeemReferral(referralCode, orderData.id, contact.email);
-        }
+      // Redeem referral code if applied
+      if (referralApplied && referralCode) {
+        redeemReferral(referralCode, orderId, contact.email);
       }
 
       // Build WhatsApp Alert Message for Admin
       const alertMsg = formatWhatsAppOrderAlert({
-        orderId: refId,
+        orderId,
         customerName: shipping.name || "Customer",
         customerPhone: contact.phone,
         customerEmail: contact.email,
@@ -426,7 +428,7 @@ function Checkout() {
       setPlaced(true);
       clear();
       trackPurchase(
-        refId,
+        orderId,
         totalPayable,
         lines.map((l) => ({ slug: l.slug, title: l.title, price: l.price })),
       );
@@ -437,9 +439,9 @@ function Checkout() {
         userPhone: contact.phone,
       });
     } catch (err) {
-      console.error(err);
-      setPlaced(true);
-      clear();
+      console.error("Unexpected checkout error:", err);
+      const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      toast.error(`Checkout error: ${msg}`);
     } finally {
       setIsSubmittingOrder(false);
     }

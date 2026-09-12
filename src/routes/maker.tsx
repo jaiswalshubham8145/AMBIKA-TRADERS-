@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef, type ReactNode, useId } from "react";
+import { useState, useEffect, useRef, useMemo, type ReactNode, useId } from "react";
 import { toast } from "sonner";
 import {
   motion,
@@ -11,6 +11,18 @@ import {
   type Variants,
   AnimatePresence,
 } from "framer-motion";
+
+// Mobile detection for performance optimization
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return isMobile;
+}
 import {
   Sparkles,
   Phone,
@@ -311,6 +323,22 @@ function CinematicTextReveal({
   expandTracking?: boolean;
 }) {
   const words = text.split(" ");
+  const mobile = useIsMobile();
+
+  // On mobile: skip per-word stagger for large texts to avoid creating 50+ animated spans
+  if (mobile && words.length > 12) {
+    return (
+      <motion.span
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-30px" }}
+        transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+        className={`inline-block ${className} ${allItalic ? "italic font-light" : ""}`}
+      >
+        {text}
+      </motion.span>
+    );
+  }
 
   return (
     <motion.span
@@ -321,7 +349,7 @@ function CinematicTextReveal({
         hidden: {},
         visible: {
           transition: {
-            staggerChildren: stagger,
+            staggerChildren: mobile ? 0.018 : stagger,
             delayChildren: delay,
           },
         },
@@ -339,19 +367,19 @@ function CinematicTextReveal({
             variants={{
               hidden: {
                 opacity: 0,
-                y: 24,
-                filter: "blur(14px)",
-                letterSpacing: expandTracking ? "0.32em" : "normal",
-                scale: 0.94,
+                y: mobile ? 12 : 24,
+                ...(mobile ? {} : { filter: "blur(14px)" }),
+                letterSpacing: expandTracking && !mobile ? "0.32em" : "normal",
+                scale: mobile ? 1 : 0.94,
               },
               visible: {
                 opacity: 1,
                 y: 0,
-                filter: "blur(0px)",
+                ...(mobile ? {} : { filter: "blur(0px)" }),
                 letterSpacing: "normal",
                 scale: 1,
                 transition: {
-                  duration: 0.7,
+                  duration: mobile ? 0.45 : 0.7,
                   ease: [0.16, 1, 0.3, 1] as const,
                 },
               },
@@ -380,21 +408,23 @@ function FlowMaskReveal({
   duration?: number;
   className?: string;
 }) {
+  const mobile = useIsMobile();
+
   return (
     <motion.div
       initial={{
-        clipPath: "polygon(0 0, 0 0, 0 100%, 0 100%)",
+        clipPath: mobile ? undefined : "polygon(0 0, 0 0, 0 100%, 0 100%)",
         opacity: 0,
-        filter: "blur(10px)",
+        ...(mobile ? { y: 20 } : { filter: "blur(10px)" }),
       }}
       whileInView={{
-        clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+        clipPath: mobile ? undefined : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
         opacity: 1,
-        filter: "blur(0px)",
+        ...(mobile ? { y: 0 } : { filter: "blur(0px)" }),
       }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{
-        duration,
+        duration: mobile ? 0.6 : duration,
         delay,
         ease: [0.19, 1, 0.22, 1] as const,
       }}
@@ -405,7 +435,7 @@ function FlowMaskReveal({
   );
 }
 
-// Perspective 3D Reveal Variants
+// Perspective 3D Reveal Variants — mobile-optimized (no blur/rotateX)
 const perspectiveVariants: Variants = {
   hidden: {
     opacity: 0,
@@ -427,9 +457,26 @@ const perspectiveVariants: Variants = {
   },
 };
 
+const perspectiveVariantsMobile: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 40,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.55,
+      ease: [0.16, 1, 0.3, 1] as const,
+    },
+  },
+};
+
 // Interactive celestial ether canvas with dynamic starry depth
+// Mobile-optimized: fewer particles, no connection lines, throttled rendering
 function CelestialEtherCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const mobile = useIsMobile();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -438,17 +485,29 @@ function CelestialEtherCanvas() {
     if (!ctx) return;
 
     let animationId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    // Use half resolution on mobile for massive perf gain
+    const dpr = mobile ? 1 : Math.min(window.devicePixelRatio, 2);
+    let width = window.innerWidth;
+    let height = window.innerHeight;
 
-    const handleResize = () => {
+    const setSize = () => {
       if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
-    window.addEventListener("resize", handleResize);
+    setSize();
+    window.addEventListener("resize", setSize);
 
-    const particleCount = Math.min(Math.floor((width * height) / 16000), 85);
+    // Mobile: 20 particles max, Desktop: up to 85
+    const particleCount = mobile
+      ? Math.min(Math.floor((width * height) / 50000), 20)
+      : Math.min(Math.floor((width * height) / 16000), 85);
+
     const particles: Array<{
       x: number;
       y: number;
@@ -476,25 +535,35 @@ function CelestialEtherCanvas() {
     }
 
     let time = 0;
+    let frameCount = 0;
     const render = () => {
+      frameCount++;
+      // Mobile: render every 2nd frame to save GPU
+      if (mobile && frameCount % 2 !== 0) {
+        animationId = requestAnimationFrame(render);
+        return;
+      }
+
       time += 0.012;
       ctx.clearRect(0, 0, width, height);
 
-      // Connect near particles
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+      // Connect near particles — SKIP on mobile (O(n²) is the biggest perf killer)
+      if (!mobile) {
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 140) {
-            const lineAlpha = (1 - dist / 140) * 0.16;
-            ctx.strokeStyle = `rgba(14, 110, 107, ${lineAlpha})`;
-            ctx.lineWidth = 0.7;
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.stroke();
+            if (dist < 140) {
+              const lineAlpha = (1 - dist / 140) * 0.16;
+              ctx.strokeStyle = `rgba(14, 110, 107, ${lineAlpha})`;
+              ctx.lineWidth = 0.7;
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.stroke();
+            }
           }
         }
       }
@@ -529,15 +598,16 @@ function CelestialEtherCanvas() {
     render();
 
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", setSize);
       cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [mobile]);
 
   return (
     <canvas
       ref={canvasRef}
       className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-65"
+      style={{ willChange: "auto" }}
     />
   );
 }
@@ -546,6 +616,10 @@ function MakerPage() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [activeConstellation, setActiveConstellation] = useState(0);
   const [currentChapter, setCurrentChapter] = useState(CHAPTERS[0].label);
+  const mobile = useIsMobile();
+
+  // Use mobile-optimized perspective variants
+  const activePersp = mobile ? perspectiveVariantsMobile : perspectiveVariants;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const portalRef = useRef<HTMLDivElement | null>(null);
@@ -558,14 +632,14 @@ function MakerPage() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 95,
-    damping: 26,
-    restDelta: 0.0005,
+    stiffness: mobile ? 120 : 95,
+    damping: mobile ? 30 : 26,
+    restDelta: mobile ? 0.002 : 0.0005,
   });
 
-  // Scroll Velocity for aggressive kinetic responsiveness
+  // Scroll Velocity for aggressive kinetic responsiveness — disabled on mobile
   const scrollVelocity = useVelocity(scrollYProgress);
-  const velocityFactor = useTransform(scrollVelocity, [-2, 2], [-14, 14]);
+  const velocityFactor = useTransform(scrollVelocity, [-2, 2], mobile ? [0, 0] : [-14, 14]);
   const smoothSkew = useSpring(velocityFactor, { stiffness: 220, damping: 20 });
 
   // Pinned Portal Stage Scroll Transforms
@@ -575,19 +649,20 @@ function MakerPage() {
   });
 
   const portalSmooth = useSpring(portalProgress, {
-    stiffness: 100,
-    damping: 24,
+    stiffness: mobile ? 140 : 100,
+    damping: mobile ? 30 : 24,
   });
 
-  // Aggressive Portal transformations
-  const portalScale = useTransform(portalSmooth, [0, 0.4, 0.95], [1, 1.18, 2.4]);
+  // Aggressive Portal transformations — toned down on mobile
+  const portalScale = useTransform(portalSmooth, [0, 0.4, 0.95], mobile ? [1, 1.05, 1.6] : [1, 1.18, 2.4]);
   const portalOpacity = useTransform(portalSmooth, [0, 0.65, 0.98], [1, 0.8, 0]);
-  const portalY = useTransform(portalSmooth, [0, 1], [0, -120]);
-  const portalTitleRotate = useTransform(portalSmooth, [0, 0.8], [0, -6]);
-  const portalTitleTracking = useTransform(portalSmooth, [0, 0.7], ["0.08em", "0.45em"]);
-  const portalSigilRotate = useTransform(portalSmooth, [0, 1], [0, 180]);
-  const portalSigilScale = useTransform(portalSmooth, [0, 0.5, 1], [1, 1.35, 0.4]);
-  const portalBlur = useTransform(portalSmooth, [0, 0.75, 1], ["0px", "0px", "16px"]);
+  const portalY = useTransform(portalSmooth, [0, 1], [0, mobile ? -60 : -120]);
+  const portalTitleRotate = useTransform(portalSmooth, [0, 0.8], [0, mobile ? -2 : -6]);
+  const portalTitleTracking = useTransform(portalSmooth, [0, 0.7], mobile ? ["0.04em", "0.15em"] : ["0.08em", "0.45em"]);
+  const portalSigilRotate = useTransform(portalSmooth, [0, 1], [0, mobile ? 90 : 180]);
+  const portalSigilScale = useTransform(portalSmooth, [0, 0.5, 1], mobile ? [1, 1.15, 0.6] : [1, 1.35, 0.4]);
+  // No blur animation on mobile — it's extremely expensive
+  const portalBlur = useTransform(portalSmooth, [0, 0.75, 1], mobile ? ["0px", "0px", "0px"] : ["0px", "0px", "16px"]);
 
   // Floating Parallax Auroras & Watermark Monogram
   const watermarkY = useTransform(smoothProgress, [0.1, 0.55], [-70, 110]);
@@ -674,37 +749,41 @@ function MakerPage() {
       {/* 2. Interactive Celestial Ether Canvas */}
       <CelestialEtherCanvas />
 
-      {/* 3. Cinematic Ambient Auroras */}
+      {/* 3. Cinematic Ambient Auroras — smaller & less blurred on mobile */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <motion.div
-          style={{ y: aurora1Y }}
-          animate={{
+          style={{ y: mobile ? undefined : aurora1Y }}
+          animate={mobile ? { opacity: [0.2, 0.35, 0.2] } : {
             scale: [1, 1.25, 1],
             x: [0, 60, 0],
             opacity: [0.35, 0.6, 0.35],
           }}
           transition={{
-            duration: 18,
+            duration: mobile ? 12 : 18,
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute -top-44 left-1/2 -translate-x-1/2 h-[750px] w-[1050px] rounded-full bg-gradient-to-b from-peacock/30 via-gold/18 to-transparent blur-[120px]"
+          className={`absolute -top-44 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-b from-peacock/30 via-gold/18 to-transparent ${
+            mobile ? "h-[300px] w-[400px] blur-[60px]" : "h-[750px] w-[1050px] blur-[120px]"
+          }`}
         />
 
         <motion.div
-          style={{ y: aurora2Y }}
-          animate={{
+          style={{ y: mobile ? undefined : aurora2Y }}
+          animate={mobile ? { opacity: [0.15, 0.3, 0.15] } : {
             scale: [1.15, 1, 1.15],
             x: [0, -60, 0],
             opacity: [0.25, 0.45, 0.25],
           }}
           transition={{
-            duration: 22,
+            duration: mobile ? 15 : 22,
             repeat: Infinity,
             ease: "easeInOut",
             delay: 3,
           }}
-          className="absolute top-1/2 -left-60 h-[700px] w-[750px] rounded-full bg-gradient-to-tr from-gold/25 via-rose/15 to-transparent blur-[130px]"
+          className={`absolute top-1/2 -left-60 rounded-full bg-gradient-to-tr from-gold/25 via-rose/15 to-transparent ${
+            mobile ? "h-[250px] w-[300px] blur-[50px]" : "h-[700px] w-[750px] blur-[130px]"
+          }`}
         />
       </div>
 
@@ -817,9 +896,9 @@ function MakerPage() {
         </div>
       </div>
 
-      {/* Main Content Flow Container with Velocity Skew */}
+      {/* Main Content Flow Container with Velocity Skew — disabled on mobile */}
       <motion.main
-        style={{ skewY: smoothSkew }}
+        style={mobile ? undefined : { skewY: smoothSkew }}
         className="relative z-10 mx-auto max-w-[1320px] px-6 pb-36"
       >
         {/* Navigation Breadcrumb */}
@@ -841,11 +920,11 @@ function MakerPage() {
         {/* SECTION 2: THE CREATOR SANCTUM & VERBATIM TESTAMENT                       */}
         {/* ========================================================================= */}
         <motion.section
-          variants={perspectiveVariants}
+          variants={activePersp}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-60px" }}
-          className="relative rounded-3xl border border-gold/40 bg-parchment/45 p-8 sm:p-14 lg:p-18 backdrop-blur-2xl shadow-2xl shadow-peacock/15 overflow-hidden"
+          className={`relative rounded-3xl border border-gold/40 bg-parchment/45 p-8 sm:p-14 lg:p-18 shadow-2xl shadow-peacock/15 overflow-hidden ${mobile ? "" : "backdrop-blur-2xl"}`}
         >
           {/* Shimmer Border Ray */}
           <div className="pointer-events-none absolute -inset-[1px] rounded-3xl bg-gradient-to-r from-gold/40 via-peacock/30 to-rose/30 opacity-50 blur-[2px]" />
@@ -1316,14 +1395,14 @@ function MakerPage() {
               return (
                 <motion.div
                   key={item.id}
-                  variants={perspectiveVariants}
+                  variants={activePersp}
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-50px" }}
-                  transition={{ delay: idx * 0.1 }}
+                  transition={{ delay: mobile ? idx * 0.05 : idx * 0.1 }}
                   whileHover={{ y: -8, transition: { duration: 0.28 } }}
                   onClick={() => setActiveConstellation(idx)}
-                  className={`group relative rounded-2xl border p-8 flex flex-col justify-between transition-all duration-300 backdrop-blur-md cursor-pointer ${
+                  className={`group relative rounded-2xl border p-8 flex flex-col justify-between transition-all duration-300 cursor-pointer ${mobile ? "" : "backdrop-blur-md"} ${
                     isSelected
                       ? "border-gold bg-parchment/60 ring-2 ring-gold/60 shadow-xl"
                       : "border-border/80 bg-parchment/30 hover:border-peacock/50 hover:bg-parchment/50 shadow-md"
@@ -1428,13 +1507,13 @@ function MakerPage() {
               return (
                 <motion.div
                   key={pillar.title}
-                  variants={perspectiveVariants}
+                  variants={activePersp}
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true }}
-                  transition={{ delay: idx * 0.16 }}
-                  whileHover={{ y: -8 }}
-                  className="rounded-2xl border border-border/80 bg-parchment/35 p-8 backdrop-blur-md space-y-5 hover:border-gold/60 transition-all duration-300 shadow-md relative overflow-hidden group"
+                  transition={{ delay: mobile ? idx * 0.08 : idx * 0.16 }}
+                  whileHover={mobile ? undefined : { y: -8 }}
+                  className={`rounded-2xl border border-border/80 bg-parchment/35 p-8 space-y-5 hover:border-gold/60 transition-all duration-300 shadow-md relative overflow-hidden group ${mobile ? "" : "backdrop-blur-md"}`}
                 >
                   {/* Subtle top laser line */}
                   <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -1477,7 +1556,7 @@ function MakerPage() {
         {/* SECTION 5: MAJESTIC PATRONAGE BANNER & DIRECT COMMISSION TERMINAL         */}
         {/* ========================================================================= */}
         <motion.section
-          variants={perspectiveVariants}
+          variants={activePersp}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
